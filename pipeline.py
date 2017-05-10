@@ -10,9 +10,9 @@ print(time() - t)
 print('loaded')
 
 def next_batch(batch_size):
-	numpy.random.shuffle(a)
+	np.random.shuffle(a)
 	j = 0
-    size = len(a)
+    	size = len(a)
 	while(batch_size+j < size):
 		yield a[j:j+batch_size]
 		j += batch_size
