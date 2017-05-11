@@ -27,26 +27,47 @@ def find(char):
 
 for i in set(label):
     indexs = find(i)[0]
-    print len(indexs)
+    # print len(indexs)
     if len(indexs) >= 5000:
-        print 'check'
+        # print 'check'
         indexs = indexs[:5000]
         len(indexs)
         for j, k in zip(data_array[indexs], label_array[indexs]):
             temp = ohe.transform([[k]]).toarray()[0]
-            # print temp, k
-            dataset.append([j, temp])
+            dataset.append([j.flatten(), temp])
     else:
         for j, k in zip(data_array[indexs], label_array[indexs]):
             temp = ohe.transform([[k]]).toarray()[0]
-            dataset.append([j, temp])
+            dataset.append([j.flatten(), temp])
+    print 'Class ', i, 'completed'
 
-data, label = zip(*dataset)
+print 'For loop finished'
+# data, label = zip(*dataset)
+# data = np.array(data)
+# label = np.array(label)
+# dataset = zip(data, label)
+data, label = zip(*dataset[:2])
+print data
+print label
+print data[0]
+print label[0]
+print type(data[0])
+print type(label[0])
 # for i in dataset[::2000]:
     # print i[1],
 
+# dataset = np.array(dataset)
 with open('final.pickle', 'wb') as f:
     pickle.dump(dataset, f, pickle.HIGHEST_PROTOCOL)
 
 with open('encoded_to_map.pickle', 'wb') as g:
     pickle.dump(encoded_to_map, g, pickle.HIGHEST_PROTOCOL)
+
+print 'changed'
+temp = np.stack(data, axis = 0)
+print temp
+print type(temp)
+temp = np.stack(label)
+print temp
+print type(temp)
+print np.stack(label, axis = 0)
