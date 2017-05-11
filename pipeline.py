@@ -9,9 +9,9 @@ a = pickle.load(open('final.pickle', 'rb'))
 print('loaded in ', time() - t)
 
 def next_batch(batch_size):
-	shuffle(a)
+	np.random.shuffle(a)
 	j = 0
-	size = len(a)
+  size = len(a
 	while(batch_size+j < size):
 		t1, t2 = zip(*a[j:j+batch_size])
 		t1 = np.stack(t1, 0)
