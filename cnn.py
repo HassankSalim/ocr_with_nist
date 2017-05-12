@@ -2,18 +2,23 @@ from __future__ import print_function
 
 import tensorflow as tf
 import math
-from pipeline import next_batch
+# from pipeline import next_batch
+from tensorflow.examples.tutorials.mnist import input_data
+
+
+mnist = input_data.read_data_sets('/home/hassan/python/MNIST_data/', one_hot=True)
+
 
 # Parameters
 learning_rate = 0.001
 training_iters = 200000
 batch_size = 256
-epoche = 10 #math.ceil(training_iters / batch_size)
+epoche = 3 #math.ceil(training_iters / batch_size)
 display_step = 10
 
 # Network Parameters
 n_input = 784 # MNIST data input (img shape: 28*28)
-n_classes = 62 # MNIST total classes (0-9 digits)
+n_classes = 10 # MNIST total classes (0-9 digits)
 dropout = 0.75 # Dropout, probability to keep units
 
 # tf Graph input
@@ -50,7 +55,7 @@ def conv_net(x, weights, biases, dropout):
     conv2 = conv2d(conv1, weights['wc2'], biases['bc2'])
     # Max Pooling (down-sampling)
     conv2 = maxpool2d(conv2, k=2)
-
+    conv3 = conv2d(conv2, weights['wc3'], biases['bc3'])
     # Fully connected layer
     # Reshape conv2 output to fit fully connected layer input
     fc1 = tf.reshape(conv2, [-1, weights['wd1'].get_shape().as_list()[0]])
@@ -58,9 +63,11 @@ def conv_net(x, weights, biases, dropout):
     fc1 = tf.nn.relu(fc1)
     # Apply Dropout
     fc1 = tf.nn.dropout(fc1, dropout)
-
+    fc2 = tf.add(tf.matmul(fc1, weights['wd2']), biases['bd2'])
+    fc2 = tf.nn.relu(fc2)
+    fc2 = tf.nn.dropout(fc2, dropout)
     # Output, class prediction
-    out = tf.add(tf.matmul(fc1, weights['out']), biases['out'])
+    out = tf.add(tf.matmul(fc2, weights['out']), biases['out'])
     return out
 
 # Store layers weight & bias
@@ -70,7 +77,9 @@ weights = {
     # 5x5 conv, 32 inputs, 64 outputs
     'wc2': tf.Variable(tf.random_normal([5, 5, 32, 64])),
     # fully connected, 7*7*64 inputs, 1024 outputs
+    'wc3':tf.Variable(tf.random_normal([3, 3, 64, 64])),
     'wd1': tf.Variable(tf.random_normal([7*7*64, 1024])),
+    'wd2': tf.Variable(tf.random_normal([1024, 1024])),
     # 1024 inputs, 10 outputs (class prediction)
     'out': tf.Variable(tf.random_normal([1024, n_classes]))
 }
@@ -78,7 +87,9 @@ weights = {
 biases = {
     'bc1': tf.Variable(tf.random_normal([32])),
     'bc2': tf.Variable(tf.random_normal([64])),
+    'bc3': tf.Variable(tf.random_normal([64])),
     'bd1': tf.Variable(tf.random_normal([1024])),
+    'bd2': tf.Variable(tf.random_normal([1024])),
     'out': tf.Variable(tf.random_normal([n_classes]))
 }
 
@@ -104,9 +115,11 @@ with tf.Session() as sess:
     # Keep training until reach max iterations
     for i in range(epoche):
 
-        for batch_x, batch_y in next_batch(batch_size):
+        # for batch_x, batch_y in next_batch(batch_size):
+        total_batch = int(mnist.train.num_examples/batch_size)
+        for j in range(total_batch):
     # while step * batch_size < training_iters:
-            # batch_x, batch_y = mnist.train.next_batch(batch_size)
+            batch_x, batch_y = mnist.train.next_batch(batch_size)
             # Run optimization op (backprop)
             sess.run(optimizer, feed_dict={x: batch_x, y: batch_y,
                                            keep_prob: dropout})
@@ -119,6 +132,7 @@ with tf.Session() as sess:
                       "{:.6f}".format(loss) + ", Training Accuracy= " + \
                       "{:.5f}".format(acc))
             step += 1
+	print('Epoche ', i, 'completed')
     print("Optimization Finished!")
     save_path = saver.save(sess, './model.ckpt')
     print("Model saved")
